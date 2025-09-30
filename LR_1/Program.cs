@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -116,11 +116,11 @@ namespace LR_1
             Random RandGen = new Random();
             string RestorationCode = RandGen.Next(99999, 1000000).ToString();
 
-            MailAddress from = new MailAddress("lr1mailmessages@gmail.com", "Maxim");
+            MailAddress from = new MailAddress("lr1mailmessages@gmail.com", "LR1_Registration");
             MailAddress to = new MailAddress(UserEmail);
             MailMessage RestorationMessage = new MailMessage(from, to);
-            RestorationMessage.Subject = "Your password restoration letter.";
-            RestorationMessage.Body = $"<h1>Hello! Your code is </h1>\n<h2> {RestorationCode} </h2>";
+            RestorationMessage.Subject = "Восстановление пароля.";
+            RestorationMessage.Body = $"<h3>Здравствуйте! Ваш код </h3>\n<h1> {RestorationCode} </h1>";
             RestorationMessage.IsBodyHtml = true;
             SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
             smtp.UseDefaultCredentials = false;
@@ -132,20 +132,20 @@ namespace LR_1
 
         public void PasswordRestoration()
         {
-            Console.Write("Enter the email the account was registered to: ");
+            Console.Write("Введите почту, использованную при регистрации: ");
             string UserEmail = Console.ReadLine();
             if (!IsValidEmail(UserEmail) || !IsUser(UserEmail))
             {
-                Console.Write("The email is invalid: ");
+                Console.Write("Адрес электронной почты некорректен.");
             }
 
             string RestorationCode = CodeMailSender(UserEmail);
 
-            Console.Write("Enter the 6-digit code that was sent to your email: ");
+            Console.Write("Введите шестизначный код, отправленный Вам на почту: ");
             string CompareCodes = Console.ReadLine();
             if (CompareCodes == RestorationCode)
             {
-                Console.Write("Enter your new password: ");
+                Console.Write("Введите новый пароль: ");
                 string NewPassword = Console.ReadLine();
                 foreach (var user in users)
                 {
