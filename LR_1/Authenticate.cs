@@ -56,7 +56,7 @@ namespace LR_1
         }
         private bool IsValidEmail(string email)
         {
-            // Простейшая проверка формата email для примера
+            // Простейшая проверка формата email
             try
             {
                 MailAddress m = new MailAddress(email);
@@ -160,7 +160,7 @@ namespace LR_1
 
 
 
-    class Program
+    class Authenticate
     {
         static void Main()
         {
