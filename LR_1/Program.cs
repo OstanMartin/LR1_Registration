@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 
 namespace LR_1
@@ -16,23 +17,32 @@ namespace LR_1
     }
 
 
+
     class UserRegistration
     {
+        //("lr1mailmessages@gmail.com", "llfp xaex ylgk ccgq")
+        private string SenderMail, SenderAppPassword;
+
+        public void SetSenderDetails(string  Email, string Password)
+        {
+            this.SenderMail = Email;
+            this.SenderAppPassword = Password;
+        }
+
         private List<User> users = new List<User>();
         public bool RegisterUser(string email, string password)
         {
-            string RestorationCode = CodeMailSender(email);
-
-            Console.Write("Enter the 6-digit code that was sent to your email: ");
-            string CompareCodes = Console.ReadLine();
-            if (CompareCodes != RestorationCode)
-            {
-                Console.WriteLine("Неверный код!");
-                return false;
-            }
             // Проверка корректности электронной почты и пароля
             if (IsValidEmail(email) && IsStrongPassword(password))
             {
+                string RestorationCode = CodeMailSender(email);
+                Console.Write("Введите шестизначный код из письма: ");
+                string CompareCodes = Console.ReadLine();
+                if (CompareCodes != RestorationCode)
+                {
+                    Console.WriteLine("Неверный код!");
+                    return false;
+                }
                 users.Add(new User { Email = email, Password = password });
                 Console.WriteLine("Пользователь успешно зарегистрирован");
                 return true;
@@ -42,6 +52,7 @@ namespace LR_1
                 Console.WriteLine("Ошибка регистрации пользователя");
                 return false;
             }
+            
         }
         private bool IsValidEmail(string email)
         {
@@ -57,10 +68,12 @@ namespace LR_1
             }
         }
 
-        private bool IsStrongPassword(string password)
+        private bool IsStrongPassword(string Password)
         {
             // Проверка надежности пароля (просто для примера - обычно используются более сложные методы)
-            return password.Length >= 8;
+            string Pattern = @"(?=.*[A-Za-z_!])(?=.*\d)";
+            bool isValid = (Password.Length >= 8) && Regex.IsMatch(Password, Pattern);
+            return isValid;
         }
 
         private bool IsUser(string email)
@@ -97,19 +110,6 @@ namespace LR_1
             }
                 
         }
-        public void Info(string email)
-        {
-            foreach (var user in users)
-            {
-                if (user.Email == email)
-                {
-                    Console.WriteLine("Вход пароль:", user.Password);
-
-                }
-            }
-            Console.WriteLine("Такого пользователя нет");
-
-        }
 
         private string CodeMailSender(string UserEmail)
         {
@@ -124,7 +124,7 @@ namespace LR_1
             RestorationMessage.IsBodyHtml = true;
             SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
             smtp.UseDefaultCredentials = false;
-            smtp.Credentials = new NetworkCredential("lr1mailmessages@gmail.com", "llfp xaex ylgk ccgq");
+            smtp.Credentials = new NetworkCredential(SenderMail, SenderAppPassword);
             smtp.EnableSsl = true;
             smtp.Send(RestorationMessage);
             return RestorationCode;
