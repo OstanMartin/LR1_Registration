@@ -8,5 +8,6 @@ namespace LR_1
 {
     internal class GradesList
     {
+
     }
 }
