@@ -6,6 +6,8 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Data.SqlClient;
+using System.Linq.Expressions;
 
 
 namespace LR_1
@@ -20,8 +22,37 @@ namespace LR_1
 
     class UserRegistration
     {
+        static private string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False";
         //("lr1mailmessages@gmail.com", "llfp xaex ylgk ccgq")
         private string SenderMail, SenderAppPassword;
+        
+        public void SqlConnect()
+        {
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            try {
+                SConnection.Open();
+                Console.WriteLine("Connection successful.");
+            }
+            catch(SqlException ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+        
+        private void AddUser(string UserLogin, string UserPassword)
+        {
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            try
+            {
+                SConnection.Open();
+                string SqlQuery = $"INSERT INTO Users (UserLogin, UserPassword) values ({UserLogin}, HashBytes('SHA1', {UserPassword}))";
+                SConnection.Close();
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
 
         public void SetSenderDetails(string  Email, string Password)
         {
@@ -43,7 +74,8 @@ namespace LR_1
                     Console.WriteLine("Неверный код!");
                     return false;
                 }
-                users.Add(new User { Email = email, Password = password });
+                AddUser(email, password);  
+                //users.Add(new User { Email = email, Password = password });
                 Console.WriteLine("Пользователь успешно зарегистрирован");
                 return true;
             }
@@ -70,22 +102,31 @@ namespace LR_1
 
         private bool IsStrongPassword(string Password)
         {
-            // Проверка надежности пароля (просто для примера - обычно используются более сложные методы)
+            // Проверка надежности пароля (простая)
             string Pattern = @"(?=.*[A-Za-z_!])(?=.*\d)";
             bool isValid = (Password.Length >= 8) && Regex.IsMatch(Password, Pattern);
             return isValid;
         }
 
-        private bool IsUser(string email)
+        private bool IsUser(string UserLogin)
         {
-            foreach (var user in users)
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            try
             {
-                if (user.Email == email)
-                {
-                    return true;
-                }
+                SConnection.Open();
+                string query = $"SELECT Count(UserLogin) from Users where UserLogin = '{UserLogin}'";
+                SqlCommand cmd = new SqlCommand(query);
+
+                if () 
+                
+                return false;
             }
-            return false;
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
+            
         }
 
         public bool LoginUser(string email, string password)
@@ -102,6 +143,7 @@ namespace LR_1
                     if (user.Email == email && user.Password == password)
                     {
                         Console.WriteLine("Вход выполнен успешно");
+
                         return true;
                     }
                 }
@@ -165,6 +207,8 @@ namespace LR_1
         static void Main()
         {
             UserRegistration userRegistration = new UserRegistration();
+
+            userRegistration.SqlConnect();
 
             while (true)
             {
