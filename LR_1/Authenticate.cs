@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Data.SqlClient;
 using System.Linq.Expressions;
+using System.Collections;
+using System.Security.Cryptography;
 
 
 namespace LR_1
@@ -22,9 +24,13 @@ namespace LR_1
 
     class UserRegistration
     {
-        static private string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False";
+        static private string ConnectionString = @"Data Source=DESKTOP-GPKQNQK;User id=default;Password=!gbpk0908;Integrated Security=True";
         //("lr1mailmessages@gmail.com", "llfp xaex ylgk ccgq")
-        private string SenderMail, SenderAppPassword;
+       
+
+        //next two should be sent to DB for security AND for it to save regardless of programm's state. 
+        private string SenderMail = "lr1mailmessages@gmail.com";
+        private string SenderAppPassword = "llfp xaex ylgk ccgq";
         
         public void SqlConnect()
         {
@@ -32,6 +38,19 @@ namespace LR_1
             try {
                 SConnection.Open();
                 Console.WriteLine("Connection successful.");
+                /*string SqlQuery = "select * from GradeBookAndLogin.dbo.Users where UserPassword = (HASHBYTES('SHA1', '{UserPasswords}'))";
+                SqlCommand cmd = new SqlCommand(SqlQuery, SConnection);
+                using (SConnection)
+                {
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"UserID: {reader.GetValue(0)}, UserLogin: {reader.GetValue(1)}, UserPassword: {reader.GetValue(2)}, RoleID: {reader.GetValue(3)}" +
+                                $", UserBackupEmail: {reader.GetValue(4)}");
+                        }
+                    }
+                }*/
             }
             catch(SqlException ex)
             {
@@ -39,13 +58,16 @@ namespace LR_1
             }
         }
         
-        private void AddUser(string UserLogin, string UserPassword)
+        private void AddUser(string UserLogin, string UserPassword, int RoleID)
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             try
             {
                 SConnection.Open();
-                string SqlQuery = $"INSERT INTO Users (UserLogin, UserPassword) values ({UserLogin}, HashBytes('SHA1', {UserPassword}))";
+                string SqlQuery = $"INSERT INTO GradeBookAndLogin.dbo.Users (UserLogin, UserPassword, RoleID) values ('{UserLogin}', HashBytes('SHA1', '{UserPassword}'), {RoleID})";
+                SqlCommand cmd = new SqlCommand(SqlQuery, SConnection);
+                int rowsAffected = cmd.ExecuteNonQuery();
+                //Console.WriteLine($"{rowsAffected} row(s) inserted successfully.");
                 SConnection.Close();
             }
             catch (SqlException ex)
@@ -61,28 +83,35 @@ namespace LR_1
         }
 
         private List<User> users = new List<User>();
-        public bool RegisterUser(string email, string password)
+        public int RegisterUser()
         {
+            Console.WriteLine("Введите адрес электронной почты:");
+            string UserEmail = Console.ReadLine();
+
+            Console.WriteLine("Введите пароль:");
+            string UserPassword = Console.ReadLine();
             // Проверка корректности электронной почты и пароля
-            if (IsValidEmail(email) && IsStrongPassword(password))
+            if (IsValidEmail(UserEmail) && IsStrongPassword(UserPassword))
             {
-                string RestorationCode = CodeMailSender(email);
+                string RestorationCode = CodeMailSender(UserEmail);
                 Console.Write("Введите шестизначный код из письма: ");
                 string CompareCodes = Console.ReadLine();
                 if (CompareCodes != RestorationCode)
                 {
                     Console.WriteLine("Неверный код!");
-                    return false;
+                    return 0;
                 }
-                AddUser(email, password);  
-                //users.Add(new User { Email = email, Password = password });
+                Console.WriteLine("Укажите роль\n 1 - Педагог.\n2 - Студент: ");
+                int UserRole = Int32.Parse(Console.ReadLine()) + 1;
+
+                AddUser(UserEmail, UserPassword, UserRole);  
                 Console.WriteLine("Пользователь успешно зарегистрирован");
-                return true;
+                return UserRole;
             }
             else
             {
                 Console.WriteLine("Ошибка регистрации пользователя");
-                return false;
+                return 0;
             }
             
         }
@@ -114,12 +143,17 @@ namespace LR_1
             try
             {
                 SConnection.Open();
-                string query = $"SELECT Count(UserLogin) from Users where UserLogin = '{UserLogin}'";
-                SqlCommand cmd = new SqlCommand(query);
+                string query = $"SELECT Count(*) from GradeBookAndLogin.dbo.Users where UserLogin = '{UserLogin}'";
+                SqlCommand cmd = new SqlCommand(query, SConnection);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.FieldCount == 0)
+                    {
+                        return false;
+                    }
 
-                if () 
-                
-                return false;
+                }
+                return true;
             }
             catch (SqlException ex)
             {
@@ -129,26 +163,42 @@ namespace LR_1
             
         }
 
-        public bool LoginUser(string email, string password)
+        public int LoginUser()
         {
-            if (!IsUser(email))
+            string UserLogin, UserPassword;
+            Console.WriteLine("Введите адрес электронной почты:");
+            UserLogin = Console.ReadLine();
+            Console.WriteLine("Введите пароль:");
+            UserPassword = Console.ReadLine();
+
+            if (!IsUser(UserLogin))
             {
                 Console.WriteLine("Неверный адрес электронной почты или пароль");
-                return false;
+                return 0;
             }
             else
             {
-                foreach (var user in users)
-                {
-                    if (user.Email == email && user.Password == password)
+                SqlConnection SConnection = new SqlConnection(ConnectionString);
+                try
+               {
+                    SConnection.Open();
+                    string SqlQuery = $"select * from GradeBookAndLogin.dbo.Users where UserLogin = '{UserLogin}' and UserPassword = HashBytes('SHA1', '{UserPassword}')";
+                    SqlCommand cmd = new SqlCommand(SqlQuery, SConnection);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        Console.WriteLine("Вход выполнен успешно");
-
-                        return true;
+                        if (reader.Read())
+                        {
+                            Console.WriteLine("Вход успешно произведен.");
+                            return reader.GetInt32(3);
+                        }
                     }
                 }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine(ex);
+                }
                 Console.WriteLine("Неверный адрес электронной почты или пароль");
-                return false;
+                return 0;
             }
                 
         }
@@ -189,12 +239,19 @@ namespace LR_1
             {
                 Console.Write("Введите новый пароль: ");
                 string NewPassword = Console.ReadLine();
-                foreach (var user in users)
+                SqlConnection SConnection = new SqlConnection(ConnectionString);
+                try
                 {
-                    if (user.Email == UserEmail)
-                    {
-                        user.Password = NewPassword;
-                    }
+                    SConnection.Open();
+                    string query = $"Update GradeBookAndLogin.dbo.Users set UserPassword = HASHBYTES('SHA1', '{NewPassword}') where UserLogin = '{UserEmail}' or UserBackupEmail = '{UserEmail}'";
+                    SqlCommand cmd = new SqlCommand(query, SConnection);
+                    cmd.ExecuteNonQuery();
+                    return;
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine(ex);
+                    return;
                 }
             }
         }
@@ -210,35 +267,76 @@ namespace LR_1
 
             userRegistration.SqlConnect();
 
+            int RoleID = 0; //pre registration/login user
+            string MenuText = "";
             while (true)
             {
-                Console.WriteLine("Выберите действие:\n1 - Регистрация\n2 - Вход\n3 - Восстановить \n0 - Выход");
+                switch (RoleID)
+                {
+                    case 0:
+                        MenuText = "Выберите действие:\n1 - Регистрация.\n2 - Вход.\n3 - Восстановить.\n0 - Выход.";
+                        break;
+                    case 1:
+                        MenuText = "Роль - Администратор.\nВыберите действие:\n4 - Установка почты рассылки писем.\n5 - Управление данными учетной записи.\n6 - Выход из учетной записи.\n0 - Выход из программы."; //5 и 6 пункты придут в более поздних версиях.
+                        break;
+                    case 2:
+                        MenuText = "Роль - Работник учебного заведения.\nВыберите действие:\n9 - Выставить оценку.\n10 - Изменить существующую оценку.\n11 - Просмотреть списки студентов групп.\n12 - Просмотреть средний балл студента.\n" +
+                            "5 - Управление данными учетной записи.\n6 - Выход из учетной записи.\n0 - Выход из программы."; //5 и 6 пункты придут в более поздних версиях.
+                        break;
+                    case 3:
+                        MenuText = "Роль - Студент учебного заведения.\nВыберите действие:\n7 - Просмотр списка всех оценок.\n8 - Просмотр списка средних баллов по предметам.\n5 - Управление данными учетной записи.\n6 - Выход из учетной записи.\n0 - Выход из программы."; //7 и 8 пункты придут в более поздних версиях.
+                        break;
+                }
+
+                    
+                Console.WriteLine(MenuText);
                 string choice = Console.ReadLine();
 
                 switch (choice)
                 {
                     case "1":
-                        Console.WriteLine("Введите адрес электронной почты:");
-                        string regEmail = Console.ReadLine();
-
-                        Console.WriteLine("Введите пароль:");
-                        string regPassword = Console.ReadLine();
-
-                        userRegistration.RegisterUser(regEmail, regPassword);
+                        RoleID = userRegistration.RegisterUser();
                         break;
 
                     case "2":
-                        Console.WriteLine("Введите адрес электронной почты:");
-                        string loginEmail = Console.ReadLine();
-
-                        Console.WriteLine("Введите пароль:");
-                        string loginPassword = Console.ReadLine();
-
-                        userRegistration.LoginUser(loginEmail, loginPassword);
+                        RoleID = userRegistration.LoginUser();
                         break;
 
                     case "3":
                         userRegistration.PasswordRestoration();
+                        break;
+                    case "4":
+                        //userRegistration.AddUser("loginEmai", "loginy");
+                        //userRegistration.IsUser("{UserLogin}");
+                        Console.WriteLine("Enter new sender email: ");
+                        string NewSenderEmail = Console.ReadLine();
+                        Console.WriteLine("Enter new sender password: ");
+                        string NewSenderPassword = Console.ReadLine();
+                        userRegistration.SetSenderDetails(NewSenderEmail, NewSenderPassword);
+                        break;
+                    case "5":
+
+                        break;
+                    case "6":
+                        RoleID = 0;
+                        break;
+                    case "7":
+
+                        break;
+                    case "8":
+
+                        break;
+                    case "9":
+
+                        break;
+                    case "10":
+
+                        break;
+                    case "11":
+
+                        break;
+                    case "12":
+
                         break;
                     case "0":
                         return;
@@ -246,7 +344,7 @@ namespace LR_1
                     default:
                         Console.WriteLine("Некорректный ввод. Попробуйте снова.");
                         break;
-                }
+                    }
             }
         }
     }
