@@ -14,21 +14,13 @@ using System.Security.Cryptography;
 
 namespace LR_1
 {
-    class User
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
-
-
     class UserRegistration
     {
         static private string ConnectionString = @"Data Source=DESKTOP-GPKQNQK;User id=default;Password=!gbpk0908;Integrated Security=True";
         //("lr1mailmessages@gmail.com", "llfp xaex ylgk ccgq")
        
 
-        //next two should be sent to DB for security AND for it to save regardless of programm's state. 
+        //these two should be sent to DB for security AND for it to save regardless of programm's state. 
         private string SenderMail = "lr1mailmessages@gmail.com";
         private string SenderAppPassword = "llfp xaex ylgk ccgq";
         
@@ -85,6 +77,9 @@ namespace LR_1
         private List<User> users = new List<User>();
         public int RegisterUser()
         {
+
+            //add the email in use check. Add giving role and adding to students/employees table.
+
             Console.WriteLine("Введите адрес электронной почты:");
             string UserEmail = Console.ReadLine();
 
@@ -315,7 +310,7 @@ namespace LR_1
                         userRegistration.SetSenderDetails(NewSenderEmail, NewSenderPassword);
                         break;
                     case "5":
-
+                        //add verification of role. if dont succeed say "Некорректный ввод. Попробуйте снова." for all of them.
                         break;
                     case "6":
                         RoleID = 0;
