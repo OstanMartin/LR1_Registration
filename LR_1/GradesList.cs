@@ -3,28 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data.SqlClient;
 
 namespace LR_1
 {
     internal class GradesList
     {
-        static private string ConnectionString = @"Data Source=DESKTOP-GPKQNQK;User id=default;Password=!gbpk0908;Integrated Security=True";
+        static private string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;User id=default;Password=!gbpk0908;Integrated Security=True";
 
         public void AddAGradeBook()
         {
             Console.WriteLine("Введите код студента: ");
-            int StudentID = Console.ReadLine();
+            int StudentID = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Введите код преподавателя: ");
-            int EmployeeID = Console.ReadLine();
+            int EmployeeID = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Введите код предмета: ");
-            int SubjectID = Console.ReadLine();
+            int SubjectID = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Введите оценку: ");
             string Grade = Console.ReadLine();
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             try
             {
                 SConnection.Open();
-                string query = $"Insert into GradeBookAndLogin.dbo.GradeLists ({StudentID}, {EmployeeID}, {SubjectID}, '{Grade}')";
+                string query = $"Insert into GradeBookAndLogin.dbo.GradeLists values ({StudentID}, {EmployeeID}, {SubjectID}, '{Grade}')";
                 SqlCommand cmd = new SqlCommand(query, SConnection);
                 cmd.ExecuteNonQuery();
                 Console.WriteLine("Оценка успешно выставлена!");
@@ -39,9 +40,9 @@ namespace LR_1
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             Console.WriteLine("Введите код выставленной оценки: ");
-            int GradeListID = Console.ReadLine();
+            int GradeListID = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Выберите действие:\n1 - Удалить\n2 - Изменить");
-            int choice = Console.ReadLine();
+            int choice = Int32.Parse(Console.ReadLine());
             switch (choice)
             {
                 case 1:
@@ -61,16 +62,16 @@ namespace LR_1
                 case 2:
                     try
                     {
-                        Console.WriteLine("Введите код студента: ");
-                        int StudentID = Console.ReadLine();
+                        /*Console.WriteLine("Введите код студента: ");
+                        int StudentID = Int32.Parse(Console.ReadLine());
                         Console.WriteLine("Введите код преподавателя: ");
-                        int EmployeeID = Console.ReadLine();
+                        int EmployeeID = Int32.Parse(Console.ReadLine());
                         Console.WriteLine("Введите код предмета: ");
-                        int SubjectID = Console.ReadLine();
+                        int SubjectID = Int32.Parse(Console.ReadLine());*/
                         Console.WriteLine("Введите оценку: ");
                         string Grade = Console.ReadLine();
                         SConnection.Open();
-                        string query = $"Update GradeBookAndLogin.dbo.GradeLists set ({StudentID}, {EmployeeID}, {SubjectID}, '{Grade}') where GradeListID = {GradeListID}";
+                        string query = $"Update GradeBookAndLogin.dbo.GradeLists set Grade = '{Grade}' where GradeListID = {GradeListID}";
                         SqlCommand cmd = new SqlCommand(query, SConnection);
                         cmd.ExecuteNonQuery();
                         Console.WriteLine("Оценка успешно изменена!");
@@ -89,7 +90,7 @@ namespace LR_1
         public void SeeGroupMembers()
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
-            Console.WriteLine("Введите код группы: ")
+            Console.WriteLine("Введите код группы: ");
             int GroupID = Int32.Parse(Console.ReadLine());
             try
             {
@@ -114,24 +115,32 @@ namespace LR_1
         public void SeeStudentAverageGradeOverall()
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
-            Console.WriteLine("Введите код студента: ")
+            Console.WriteLine("Введите код студента: ");
             int StudentID = Int32.Parse(Console.ReadLine());
             try
             {
                 SConnection.Open();
                 string query = $"Select Grade from GradeBookAndLogin.dbo.GradeLists where StudentID = {StudentID}";
                 SqlCommand cmd = new SqlCommand(query, SConnection);
-                int AvgGrade;
+                int AvgGrade = 0;
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     int counter = 0;
                     int AllGrades = 0;
                     while (reader.Read())
                     {
-                        AllGrades = Int32.Parse(reader.GetValue(0));
+                        AllGrades = Convert.ToInt32(reader.GetValue(0));
                         counter++;
                     }
-                    AvgGrade = AllGrades / counter;
+                    if (counter != 0)
+                    {
+                        AvgGrade = AllGrades / counter;
+                    }
+                    else
+                    {
+                        Console.WriteLine("У этого студента нет оценок.");
+                        return;
+                    }
                 }
                 Console.WriteLine("Средний балл этого студента: " +  AvgGrade);
             }
@@ -144,14 +153,13 @@ namespace LR_1
         public void SeeStudentsGrades()
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
-            Console.WriteLine("Введите код студента: ")
+            Console.WriteLine("Введите код студента: ");
             int StudentID = Int32.Parse(Console.ReadLine());
             try
             {
                 SConnection.Open();
                 string query = $"Select * from GradeBookAndLogin.dbo.GradeLists where StudentID = {StudentID}";
                 SqlCommand cmd = new SqlCommand(query, SConnection);
-                int AvgGrade;
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
