@@ -16,27 +16,19 @@ namespace LR_1
 {
     class UserRegistration
     {
-        static private string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;User id=default;Password=!gbpk0908;Integrated Security=True";
+        //;Integrated Security=True
+        private string ConnectionString;
+        public UserRegistration(string ConnectionString)
+        {
+            this.ConnectionString = ConnectionString;
+        }
         //("lr1mailmessages@gmail.com", "llfp xaex ylgk ccgq")
-       
+
 
         //these two should be sent to DB for security AND for it to save regardless of programm's state. 
         private string SenderMail = "lr1mailmessages@gmail.com";
         private string SenderAppPassword = "llfp xaex ylgk ccgq";
-        
-        public void SqlConnect()
-        {
-            SqlConnection SConnection = new SqlConnection(ConnectionString);
-            try {
-                SConnection.Open();
-                //Console.WriteLine("Connection successful.");
-            }
-            catch(SqlException ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
-        
+
         private void AddUser(string UserLogin, string UserPassword, int RoleID)
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
@@ -85,7 +77,7 @@ namespace LR_1
             }
         }
 
-        public void SetSenderDetails(string  Email, string Password)
+        public void SetSenderDetails(string Email, string Password)
         {
             this.SenderMail = Email;
             this.SenderAppPassword = Password;
@@ -116,7 +108,7 @@ namespace LR_1
                 }
                 Console.WriteLine("Укажите роль:\n1 - Педагог\n2 - Студент");
                 int UserRole = Int32.Parse(Console.ReadLine()) + 1;
-                AddUser(UserEmail, UserPassword, UserRole);  
+                AddUser(UserEmail, UserPassword, UserRole);
                 Console.WriteLine("Пользователь успешно зарегистрирован");
                 return UserRole;
             }
@@ -125,7 +117,7 @@ namespace LR_1
                 Console.WriteLine("Неверный адрес электронной почты или пароль.");
                 return 0;
             }
-            
+
         }
         private bool IsValidEmail(string email)
         {
@@ -169,7 +161,7 @@ namespace LR_1
                 Console.WriteLine(ex);
                 return false;
             }
-            
+
         }
 
         public int LoginUser()
@@ -189,7 +181,7 @@ namespace LR_1
             {
                 SqlConnection SConnection = new SqlConnection(ConnectionString);
                 try
-               {
+                {
                     SConnection.Open();
                     string SqlQuery = $"select * from GradeBookAndLogin.dbo.Users where UserLogin = '{UserLogin}' and UserPassword = HashBytes('SHA1', '{UserPassword}')";
                     SqlCommand cmd = new SqlCommand(SqlQuery, SConnection);
@@ -209,7 +201,7 @@ namespace LR_1
                 Console.WriteLine("Неверный адрес электронной почты или пароль");
                 return 0;
             }
-                
+
         }
 
         private string CodeMailSender(string UserEmail)
@@ -246,7 +238,7 @@ namespace LR_1
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     UserID = reader.GetInt32(0);
-                }   
+                }
                 string RoleName;
                 if (RoleID == 1)
                 {
@@ -261,69 +253,69 @@ namespace LR_1
                         RoleName = reader.GetString(0);
                     }
                 }
-                    
+
                 while (true)
-                        {
-                            SqlQuery = $"select ({RoleName}FirstName, {RoleName}LastName, {RoleName}Patronymic, {RoleName}Sex, {RoleName}DateOfBirth, {RoleName}HomeAddress) from GradeBookAndLogin.dbo.{RoleName}s";
+                {
+                    SqlQuery = $"select ({RoleName}FirstName, {RoleName}LastName, {RoleName}Patronymic, {RoleName}Sex, {RoleName}DateOfBirth, {RoleName}HomeAddress) from GradeBookAndLogin.dbo.{RoleName}s";
+                    cmd = new SqlCommand(SqlQuery, SConnection);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        Console.WriteLine($"Имя: {reader.GetValue(0)}\nФамилия: {reader.GetValue(1)}\nОтчество: {reader.GetValue(2)}\nПол: {reader.GetValue(3)}\nДата рождения (гггг-мм-дд): {reader.GetValue(4)}\nАдрес проживания: {reader.GetValue(5)}");
+                    }
+                    Console.WriteLine("Выберите пункт для изменения:\n1 - Имя\n2 - Фамилия\n3 - Отчество\n4 - Пол\n5 - Дата рождения\n6 - Домашний адрес\n0 - Назад\n\n");
+                    string choice = Console.ReadLine();
+                    switch (choice)
+                    {
+                        case "0":
+                            return;
+                        case "1":
+                            Console.WriteLine("Введите новое имя: ");
+                            string NewName = Console.ReadLine();
+                            SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}FirstName = '{NewName}' where UserID = '{UserID}'";
                             cmd = new SqlCommand(SqlQuery, SConnection);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                Console.WriteLine($"First Name: {reader.GetValue(0)}\nLast Name: {reader.GetValue(1)}\nPatronymic: {reader.GetValue(2)}\nSex: {reader.GetValue(3)}\nBirth date: {reader.GetValue(4)}\nHome address: {reader.GetValue(5)}");
-                            }
-                            Console.WriteLine("Выберите пункт для изменения:\n1 - Имя\n2 - Фамилия\n3 - Отчество\n4 - Пол\n5 - Дата рождения\n6 - Домашний адрес\n0 - Назад\n\n");
-                            string choice = Console.ReadLine();
-                            switch (choice)
-                            {
-                                case "0":
-                                    return;
-                                case "1":
-                                    Console.WriteLine("Введите новое имя: ");
-                                    string NewName = Console.ReadLine();
-                                    SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}FirstName = '{NewName}' where UserID = '{UserID}'";
-                                    cmd = new SqlCommand(SqlQuery, SConnection);
-                                    cmd.ExecuteNonQuery();
-                                    break;
-                                case "2":
-                                    Console.WriteLine("Введите новую фамиилию: ");
-                                    string NewLastName = Console.ReadLine();
-                                    SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}LastName = '{NewLastName}' where UserID = '{UserID}'";
-                                    cmd = new SqlCommand(SqlQuery, SConnection);
-                                    cmd.ExecuteNonQuery();
-                                    break;
-                                case "3":
-                                    Console.WriteLine("Введите новое отчество: ");
-                                    string NewPatronymic = Console.ReadLine();
-                                    SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}Patronymic = '{NewPatronymic}' where UserID = '{UserID}'";
-                                    cmd = new SqlCommand(SqlQuery, SConnection);
-                                    cmd.ExecuteNonQuery();
-                                    break;
-                                case "4":
-                                    Console.WriteLine("Введите новыый пол: ");
-                                    string NewSex = Console.ReadLine();
-                                    SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}Sex = '{NewSex}' where UserID = '{UserID}'";
-                                    cmd = new SqlCommand(SqlQuery, SConnection);
-                                    cmd.ExecuteNonQuery();
-                                    break;
-                                case "5":
-                                    Console.WriteLine("Введите новую дату рождения: ");
-                                    string NewBirthDate = Console.ReadLine();
-                                    SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}DateOfBirth = '{NewBirthDate}' where UserID = '{UserID}'";
-                                    cmd = new SqlCommand(SqlQuery, SConnection);
-                                    cmd.ExecuteNonQuery();
-                                    break;
-                                case "6":
-                                    Console.WriteLine("Введите новый домашний адрес: ");
-                                    string NewHomeAddress = Console.ReadLine();
-                                    SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}HomeAddress = '{NewHomeAddress}' where UserID = '{UserID}'";
-                                    cmd = new SqlCommand(SqlQuery, SConnection);
-                                    cmd.ExecuteNonQuery();
-                                    break;
-                                default:
-                                    Console.WriteLine("Некорректный ввод.");
-                                    break;
-                            }
-                        }
-                
+                            cmd.ExecuteNonQuery();
+                            break;
+                        case "2":
+                            Console.WriteLine("Введите новую фамиилию: ");
+                            string NewLastName = Console.ReadLine();
+                            SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}LastName = '{NewLastName}' where UserID = '{UserID}'";
+                            cmd = new SqlCommand(SqlQuery, SConnection);
+                            cmd.ExecuteNonQuery();
+                            break;
+                        case "3":
+                            Console.WriteLine("Введите новое отчество: ");
+                            string NewPatronymic = Console.ReadLine();
+                            SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}Patronymic = '{NewPatronymic}' where UserID = '{UserID}'";
+                            cmd = new SqlCommand(SqlQuery, SConnection);
+                            cmd.ExecuteNonQuery();
+                            break;
+                        case "4":
+                            Console.WriteLine("Введите новыый пол: ");
+                            string NewSex = Console.ReadLine();
+                            SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}Sex = '{NewSex}' where UserID = '{UserID}'";
+                            cmd = new SqlCommand(SqlQuery, SConnection);
+                            cmd.ExecuteNonQuery();
+                            break;
+                        case "5":
+                            Console.WriteLine("Введите новую дату рождения: ");
+                            string NewBirthDate = Console.ReadLine();
+                            SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}DateOfBirth = '{NewBirthDate}' where UserID = '{UserID}'";
+                            cmd = new SqlCommand(SqlQuery, SConnection);
+                            cmd.ExecuteNonQuery();
+                            break;
+                        case "6":
+                            Console.WriteLine("Введите новый домашний адрес: ");
+                            string NewHomeAddress = Console.ReadLine();
+                            SqlQuery = $"update GradeBookAndLogin.dbo.{RoleName}s set {RoleName}HomeAddress = '{NewHomeAddress}' where UserID = '{UserID}'";
+                            cmd = new SqlCommand(SqlQuery, SConnection);
+                            cmd.ExecuteNonQuery();
+                            break;
+                        default:
+                            Console.WriteLine("Некорректный ввод.");
+                            break;
+                    }
+                }
+
             }
             catch (SqlException ex)
             {
@@ -400,7 +392,7 @@ namespace LR_1
 
                 }
             }
-            
+
         }
 
         public void PasswordRestoration()
@@ -444,11 +436,10 @@ namespace LR_1
     {
         static void Main()
         {
-            UserRegistration userRegistration = new UserRegistration();
+            string ConnectionString = "Data Source=LAB-405-ST-3\\MSLR1REG;User id=default;Password=12345678";
+            UserRegistration userRegistration = new UserRegistration(ConnectionString);
 
-            GradesList gradesList = new GradesList();
-
-            userRegistration.SqlConnect();
+            GradesList gradesList = new GradesList(ConnectionString);
 
             int RoleID = 0; //pre registration/login user
             string MenuText = "";
@@ -460,7 +451,7 @@ namespace LR_1
                         MenuText = "Выберите действие:\n1 - Регистрация.\n2 - Вход.\n3 - Восстановить.\n0 - Выход.\n\n";
                         break;
                     case 1:
-                        MenuText = "\n\nРоль - Администратор.\nВыберите действие:\n4 - Установка почты рассылки писем.\n5 - Управление данными учетной записи.\n6 - Выход из учетной записи.\n0 - Выход из программы.\n\n"; 
+                        MenuText = "\n\nРоль - Администратор.\nВыберите действие:\n4 - Установка почты рассылки писем.\n5 - Управление данными учетной записи.\n6 - Выход из учетной записи.\n0 - Выход из программы.\n\n";
                         break;
                     case 2:
                         MenuText = "\n\nРоль - Работник учебного заведения.\nВыберите действие:\n9 - Выставить оценку.\n10 - Изменить существующую оценку.\n11 - Просмотреть списки студентов групп.\n12 - Просмотреть средний балл студента.\n" +
@@ -471,7 +462,7 @@ namespace LR_1
                         break;
                 }
 
-                    
+
                 Console.WriteLine(MenuText);
                 string choice = Console.ReadLine();
 
@@ -516,7 +507,7 @@ namespace LR_1
                         {
                             gradesList.SeeStudentsGrades();
                         }
-                            break;
+                        break;
                     case "8":
                         if (RoleID != 3 && RoleID != 1)
                         {
@@ -573,7 +564,7 @@ namespace LR_1
                     default:
                         Console.WriteLine("Некорректный ввод. Попробуйте снова.");
                         break;
-                    }
+                }
             }
         }
     }

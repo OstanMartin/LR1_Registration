@@ -9,7 +9,12 @@ namespace LR_1
 {
     internal class GradesList
     {
-        static private string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;User id=default;Password=!gbpk0908;Integrated Security=True";
+        private string ConnectionString;
+
+        public GradesList(string ConnectionString)
+        {
+            this.ConnectionString = ConnectionString;
+        }
 
         public void AddAGradeBook()
         {
