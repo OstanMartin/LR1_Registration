@@ -16,7 +16,7 @@ namespace LR_1
             this.ConnectionString = ConnectionString;
         }
 
-        public void AddAGradeBook()
+        public void AddGradeBook()
         {
             Console.WriteLine("Введите код студента: ");
             int StudentID = Int32.Parse(Console.ReadLine());
@@ -41,7 +41,7 @@ namespace LR_1
             }
         }
 
-        public void EditAGradeBook()
+        public void EditGradeBook()
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             Console.WriteLine("Введите код выставленной оценки: ");
@@ -117,6 +117,47 @@ namespace LR_1
             }
         }
 
+        public void SeeStudentAverageGrade()
+        {
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            Console.WriteLine("Введите код студента: ");
+            int StudentID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine("Введите код предмета: ");
+            int SubjectID = Int32.Parse(Console.ReadLine());
+            string SubjectName;
+            try
+            {
+                SConnection.Open();
+                string query = $"Select SubjectName, Grade from GradeBookAndLogin.dbo.GradeLists JOIN Subjects on GradeLists.SubjectID = Subjects.SubjectID where StudentID = {StudentID} and SubjectID = {SubjectID}";
+                SqlCommand cmd = new SqlCommand(query, SConnection);
+                int AvgGrade = 0;                
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    SubjectName = (string)reader.GetValue(0);
+                    int counter = 0;
+                    int AllGrades = 0;
+                    while (reader.Read())
+                    {
+                        AllGrades = Convert.ToInt32(reader.GetValue(1));
+                        counter++;
+                    }
+                    if (counter != 0)
+                    {
+                        AvgGrade = AllGrades / counter;
+                    }
+                    else
+                    {
+                        Console.WriteLine("У этого студента нет оценок.");
+                        return;
+                    }
+                }
+                Console.WriteLine($"Средний балл этого студента по предмету {SubjectName}: {AvgGrade}");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
         public void SeeStudentAverageGradeOverall()
         {
             SqlConnection SConnection = new SqlConnection(ConnectionString);
