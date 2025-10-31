@@ -46,7 +46,7 @@ namespace LR_1
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             Console.WriteLine("Введите код выставленной оценки: ");
             int GradeListID = Int32.Parse(Console.ReadLine());
-            Console.WriteLine("Выберите действие:\n1 - Удалить\n2 - Изменить");
+            Console.WriteLine("Выберите действие:\n1 - Удалить\n2 - Изменить\n3 - Вернуться");
             int choice = Int32.Parse(Console.ReadLine());
             switch (choice)
             {
