@@ -46,7 +46,7 @@ namespace LR_1
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             Console.WriteLine("Введите код выставленной оценки: ");
             int GradeListID = Int32.Parse(Console.ReadLine());
-            Console.WriteLine("Выберите действие:\n1 - Удалить\n2 - Изменить");
+            Console.WriteLine("Выберите действие:\n1 - Удалить\n2 - Изменить\n3 - Вернуться");
             int choice = Int32.Parse(Console.ReadLine());
             switch (choice)
             {
@@ -89,7 +89,7 @@ namespace LR_1
                 default:
                     return;
             }
-            
+
         }
 
         public void SeeGroupMembers()
@@ -130,7 +130,7 @@ namespace LR_1
                 SConnection.Open();
                 string query = $"Select SubjectName, Grade from GradeBookAndLogin.dbo.GradeLists JOIN Subjects on GradeLists.SubjectID = Subjects.SubjectID where StudentID = {StudentID} and SubjectID = {SubjectID}";
                 SqlCommand cmd = new SqlCommand(query, SConnection);
-                int AvgGrade = 0;                
+                int AvgGrade = 0;
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     SubjectName = (string)reader.GetValue(0);
@@ -188,7 +188,7 @@ namespace LR_1
                         return;
                     }
                 }
-                Console.WriteLine("Средний балл этого студента: " +  AvgGrade);
+                Console.WriteLine("Средний балл этого студента: " + AvgGrade);
             }
             catch (SqlException ex)
             {
@@ -218,6 +218,93 @@ namespace LR_1
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        private void AddGroup()
+        {
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            Console.WriteLine("Введите название группы: ");
+            string GroupName = Console.ReadLine();
+            try
+            {
+                SConnection.Open();
+                string query = $"Insert into GradeBookAndLogin.dbo.Groups values ('{GroupName}')";
+                SqlCommand cmd = new SqlCommand(query, SConnection);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("Группа успешно добавлена!");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        private void EditGroup()
+        {
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            Console.WriteLine("Введите код группы: ");
+            int GroupID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine("Введите новое название группы: ");
+            string GroupName = Console.ReadLine();
+            try
+            {
+                SConnection.Open();
+                string query = $"Update GradeBookAndLogin.dbo.Groups Set GroupName = '{GroupName}' where GroupID = {GroupID}";
+                SqlCommand cmd = new SqlCommand(query, SConnection);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("Группа успешно редактирована!");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        private void DeleteGroup()
+        {
+            SqlConnection SConnection = new SqlConnection(ConnectionString);
+            Console.WriteLine("Введите код группы: ");
+            int GroupID = Int32.Parse(Console.ReadLine());
+            try
+            {
+                SConnection.Open();
+                string query = $"Delete from GradeBookAndLogin.dbo.Groups where GroupID = {GroupID}";
+                SqlCommand cmd = new SqlCommand(query, SConnection);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("Группа успешно удалена!");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        public void EditGroups()
+        {
+            while (true)
+            {
+                Console.WriteLine("Выберите действие:\n1 - Добавить группу.\n2 - Редактировать группу.\n3 - Удалить группу.\n0 - Выход.\n\n");
+                string choice = Console.ReadLine();
+                switch (choice)
+                {
+                    case "1":
+                        AddGroup();
+                        break;
+                    case "2":
+                        EditGroup();
+                        break;
+                    case "3":
+                        DeleteGroup();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                        break;
+
+                }
+            }
+
         }
     }
 }
