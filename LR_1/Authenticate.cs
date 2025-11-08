@@ -436,7 +436,8 @@ namespace LR_1
     {
         static void Main()
         {
-            string ConnectionString = "Data Source=LAB-405-ST-3\\MSLR1REG;User id=default;Password=12345678";
+            Console.WriteLine("Enter connectionstring: ");
+            string ConnectionString = Console.ReadLine(); //"Data Source=LAB-405-ST-3\\MSLR1REG;User id=default;Password=12345678" 
             UserRegistration userRegistration = new UserRegistration(ConnectionString);
 
             GradesList gradesList = new GradesList(ConnectionString);
@@ -451,7 +452,7 @@ namespace LR_1
                         MenuText = "Выберите действие:\n1 - Регистрация.\n2 - Вход.\n3 - Восстановить.\n0 - Выход.\n\n";
                         break;
                     case 1:
-                        MenuText = "\n\nРоль - Администратор.\nВыберите действие:\n4 - Установка почты рассылки писем.\n5 - Управление данными учетной записи.\n6 - Выход из учетной записи.\n0 - Выход из программы.\n\n";
+                        MenuText = "\n\nРоль - Администратор.\nВыберите действие:\n4 - Установка почты рассылки писем.\n5 - Управление данными учетной записи.\n13 - Управление группами\n6 - Выход из учетной записи.\n0 - Выход из программы.\n\n";
                         break;
                     case 2:
                         MenuText = "\n\nРоль - Работник учебного заведения.\nВыберите действие:\n9 - Выставить оценку.\n10 - Изменить существующую оценку.\n11 - Просмотреть списки студентов групп.\n8 - Просмотр списка средних баллов по предметам.\n12 - Просмотреть общий средний балл студента.\n" +
@@ -556,6 +557,16 @@ namespace LR_1
                         else
                         {
                             gradesList.SeeStudentAverageGradeOverall();
+                        }
+                        break;
+                    case "13":
+                        if (RoleID != 1)
+                        {
+                            Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                        }
+                        else
+                        {
+                            gradesList.EditGroups();
                         }
                         break;
                     case "0":
