@@ -95,7 +95,7 @@ namespace LR_1
             }
             Console.WriteLine("Введите пароль:");
             string UserPassword = Console.ReadLine();
-            // Проверка корректности электронной почты и пароля
+            // Проверка корректности zэлектронной почты и пароля
             if (IsValidEmail(UserEmail) && IsStrongPassword(UserPassword))
             {
                 string RestorationCode = CodeMailSender(UserEmail);
@@ -229,7 +229,7 @@ namespace LR_1
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             try
             {
-                int UserID;
+                int UserID = 0;
                 SConnection.Open();
                 Console.WriteLine("Для дополнительного подтвеждения введите логин: ");
                 string UserLogin = Console.ReadLine();
@@ -237,30 +237,31 @@ namespace LR_1
                 SqlCommand cmd = new SqlCommand(SqlQuery, SConnection);
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    UserID = reader.GetInt32(0);
+                    if (reader.Read())
+                    {
+                        UserID = reader.GetInt32(0);
+                    }
                 }
-                string RoleName;
-                if (RoleID == 1)
+                string RoleName = "Employee";
+                SqlQuery = $"select RoleName from GradeBookAndLogin.dbo.Roles where RoleID = {RoleID}";
+                cmd = new SqlCommand(SqlQuery, SConnection);
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    RoleName = "Employee";
-                }
-                else
-                {
-                    SqlQuery = $"select RoleName from GradeBooksAndLogin.dbo.Roles where RoleID = {RoleID}";
-                    cmd = new SqlCommand(SqlQuery, SConnection);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    if (reader.Read())
                     {
                         RoleName = reader.GetString(0);
                     }
                 }
-
                 while (true)
                 {
-                    SqlQuery = $"select ({RoleName}FirstName, {RoleName}LastName, {RoleName}Patronymic, {RoleName}Sex, {RoleName}DateOfBirth, {RoleName}HomeAddress) from GradeBookAndLogin.dbo.{RoleName}s";
+                    SqlQuery = $"select {RoleName}FirstName, {RoleName}LastName, {RoleName}Patronymic, {RoleName}Sex, {RoleName}BirthDate, {RoleName}HomeAddress from GradeBookAndLogin.dbo.{RoleName}s where UserID = {UserID}";
                     cmd = new SqlCommand(SqlQuery, SConnection);
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        Console.WriteLine($"Имя: {reader.GetValue(0)}\nФамилия: {reader.GetValue(1)}\nОтчество: {reader.GetValue(2)}\nПол: {reader.GetValue(3)}\nДата рождения (гггг-мм-дд): {reader.GetValue(4)}\nАдрес проживания: {reader.GetValue(5)}");
+                        if (reader.Read())
+                        {
+                            Console.WriteLine($"Имя: {reader.GetValue(0)}\nФамилия: {reader.GetValue(1)}\nОтчество: {reader.GetValue(2)}\nПол: {reader.GetValue(3)}\nДата рождения (гггг-мм-дд): {reader.GetValue(4)}\nАдрес проживания: {reader.GetValue(5)}");
+                        }
                     }
                     Console.WriteLine("Выберите пункт для изменения:\n1 - Имя\n2 - Фамилия\n3 - Отчество\n4 - Пол\n5 - Дата рождения\n6 - Домашний адрес\n0 - Назад\n\n");
                     string choice = Console.ReadLine();
@@ -328,7 +329,7 @@ namespace LR_1
             SqlConnection SConnection = new SqlConnection(ConnectionString);
             try
             {
-                int UserID;
+                int UserID = 0;
                 SConnection.Open();
                 Console.WriteLine("Для дополнительного подтвеждения введите логин: ");
                 string UserLogin = Console.ReadLine();
@@ -336,13 +337,19 @@ namespace LR_1
                 SqlCommand cmd = new SqlCommand(SqlQuery, SConnection);
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    UserID = reader.GetInt32(0);
-                }
+                    if (reader.Read())
+                    {
+                        UserID = reader.GetInt32(0);
+                    }
+                }               
                 SqlQuery = $"Select UserBackupEmail from GradeBookAndLogin.dbo.Users where UserID = {UserID}";
                 cmd = new SqlCommand(SqlQuery, SConnection);
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    Console.WriteLine("Резервный почтовый адрес: " + reader.GetString(0));
+                    if (reader.Read())
+                    {
+                        Console.WriteLine("Резервный почтовый адрес: " + reader.GetValue(0));
+                    }
                 }
                 Console.WriteLine("Введите новый резервный почтовый адрес: ");
                 string BackupEmail = Console.ReadLine();
@@ -449,7 +456,7 @@ namespace LR_1
                 switch (RoleID)
                 {
                     case 0:
-                        MenuText = "Выберите действие:\n1 - Регистрация.\n2 - Вход.\n3 - Восстановить.\n0 - Выход.\n\n";
+                        MenuText = "\nВыберите действие:\n1 - Регистрация.\n2 - Вход.\n3 - Восстановить.\n0 - Выход.\n\n";
                         break;
                     case 1:
                         MenuText = "\n\nРоль - Администратор.\nВыберите действие:\n4 - Установка почты рассылки писем.\n5 - Управление данными учетной записи.\n13 - Управление группами\n6 - Выход из учетной записи.\n0 - Выход из программы.\n\n";
