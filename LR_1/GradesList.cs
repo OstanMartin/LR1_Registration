@@ -124,21 +124,29 @@ namespace LR_1
             int StudentID = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Введите код предмета: ");
             int SubjectID = Int32.Parse(Console.ReadLine());
-            string SubjectName;
+            string SubjectName = "";
             try
             {
                 SConnection.Open();
-                string query = $"Select SubjectName, Grade from GradeBookAndLogin.dbo.GradeLists JOIN Subjects on GradeLists.SubjectID = Subjects.SubjectID where StudentID = {StudentID} and SubjectID = {SubjectID}";
+                string query = $"Select Grade from GradeBookAndLogin.dbo.GradeLists where StudentID = {StudentID} and SubjectID = {SubjectID}";
+                string query2 = $"Select SubjectName from GradeBookAndLogin.dbo.Subjects where SubjectID = {StudentID}";
                 SqlCommand cmd = new SqlCommand(query, SConnection);
-                int AvgGrade = 0;
+                SqlCommand cmd2 = new SqlCommand(query2, SConnection);
+                using (SqlDataReader reader = cmd2.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        SubjectName = Convert.ToString(reader.GetString(0));
+                    }
+                }
+                    int AvgGrade = 0;
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    SubjectName = (string)reader.GetValue(0);
                     int counter = 0;
                     int AllGrades = 0;
                     while (reader.Read())
                     {
-                        AllGrades = Convert.ToInt32(reader.GetValue(1));
+                        AllGrades += Convert.ToInt32(reader.GetValue(0));
                         counter++;
                     }
                     if (counter != 0)
@@ -175,7 +183,7 @@ namespace LR_1
                     int AllGrades = 0;
                     while (reader.Read())
                     {
-                        AllGrades = Convert.ToInt32(reader.GetValue(0));
+                        AllGrades += Convert.ToInt32(reader.GetValue(0));
                         counter++;
                     }
                     if (counter != 0)

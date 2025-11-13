@@ -507,7 +507,7 @@ namespace LR_1
                         RoleID = 0;
                         break;
                     case "7":
-                        if (RoleID != 3 && RoleID != 1)
+                        if (RoleID == 0)
                         {
                             Console.WriteLine("Некорректный ввод. Попробуйте снова.");
                         }
@@ -517,7 +517,7 @@ namespace LR_1
                         }
                         break;
                     case "8":
-                        if (RoleID != 3 && RoleID != 1)
+                        if (RoleID == 0)
                         {
                             Console.WriteLine("Некорректный ввод. Попробуйте снова.");
                         }
@@ -557,7 +557,7 @@ namespace LR_1
                         }
                         break;
                     case "12":
-                        if (RoleID != 2 && RoleID != 1)
+                        if (RoleID == 0)
                         {
                             Console.WriteLine("Некорректный ввод. Попробуйте снова.");
                         }
